@@ -45,25 +45,24 @@ app.post("/view", (req, res)=>
 
 });
 
-app.get("/show/:filename", (req, res)=>
+app.post("/show", (req, res)=>
 {
-
-    fs.readFile('./image/'+req.params.filename, (error, data)=>
+    try
     {
-        if(error)
-        {
-            console.log(error)
-            res.send(500);
-        }
-        else
-        {
-            res.writeHead(200, {'Content-Type':'image/jpg'})
-            console.log(data)
-            let buf = Buffer.from(data);
-            let base64 = buf.toString('base64');
-            res.end(base64);
-        }
-    });
+        findImageName(req.body.name, imageList)
+            .then((data)=>
+            {
+                console.log(data.name)
+                res.send(data)
+            })
+    }
+    catch(err)
+    {
+        console.log(err)
+        res.send(500);
+    }
+
+
 });
 
 
@@ -107,6 +106,30 @@ let findImage = (start, end, list) =>
         })
         console.log("encode")
         resolve(nlist);
+    })
+}
+
+let findImageName = (name, list) =>
+{
+    return new Promise((resolve)=>
+    {
+        console.log("encode")
+        list.map((image)=>
+        {
+            if(name === image.name)
+            {
+                console.log(name)
+                console.log(image.name)
+                console.log(name === image.name)
+                let data = fs.readFileSync('./image/' + image.name);
+                let buf = Buffer.from(data);
+                let base64 = buf.toString('base64');
+                let url = "data:image/jpg;base64," + base64;
+                let nImage = {"title":image.name, "date":image.date, "img": url}
+                console.log(nImage.title)
+                resolve([nImage]);
+            }
+        })
     })
 }
 

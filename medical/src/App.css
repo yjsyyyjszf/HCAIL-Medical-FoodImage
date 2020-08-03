@@ -14,12 +14,13 @@
 }
 
 .App-header {
-
-  min-height: 100vh;
+  margin-top: 10%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  height: 100%;
+  width: 100%;
 }
 
 .App-link {
@@ -34,19 +35,34 @@
     transform: rotate(360deg);
   }
 }
-img{
-  width: auto;
-  height:auto;
-  max-width: 301px;
-  max-height: 301px;
 
-}
-.imggal{
-margin: 0 50px;
 
+img {
+  width: 100%;
+  height: auto;
 }
+
+.nameStyle
+{
+  display: flex;
+  line-height: 200%;
+}
+
 .btnStyle{
-  margin: 5px;
+  width: 10%;
+}
+
+.dateStyle
+{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dateBoxStyle
+{
+  display: flex;
+  line-height: 200%;
 }
 
 .GridListTileBar{

@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Button, TextField, GridList, GridListTile, GridListTileBar, ListSubheader, IconButton} from '@material-ui/core'
+import {Button, TextField, GridList, GridListTile, GridListTileBar, ListSubheader} from '@material-ui/core'
 import {makeStyles} from "@material-ui/core/styles";
 import DatePicker from "react-datepicker";
 import moment from "moment";
@@ -13,8 +13,8 @@ const useStyles = makeStyles((theme) =>
     root: {
         display: 'flex',
         flexWrap: 'wrap',
-        justifyContent: 'space-around',
         overflow: 'hidden',
+        justifyContent: 'space-around',
         backgroundColor: theme.palette.background.paper,
 
     },
@@ -32,7 +32,6 @@ const useStyles = makeStyles((theme) =>
 
 function App() {
     const [imagetext, setimagetext] = useState('');
-    const [imageurl, setimageurl] = useState('');
     const [startdate, setstartdate] = useState(new Date());
     const [enddate, setenddate] = useState(new Date());
     const [tileData, settile] = useState([]);
@@ -45,21 +44,11 @@ function App() {
 
     const viewPhoto=()=>
     {
-        client.get('http://localhost:3001/show/'+imagetext)
+        client.post('http://localhost:3001/show', {name: imagetext})
             .then((response)=>
             {
-                return response;
-            })
-            .then((photo)=>
-            {
-                let url = {uri : ("data:image/jpg;base64," + photo.data)};
-                return url
-            })
-            .then((url)=>
-            {
-                setimageurl(url)
-                console.log(url)
-
+                settile(response.data)
+                console.log(response)
             })
             .catch((err) => {console.log(err)})
     }
@@ -89,29 +78,38 @@ function App() {
     return (
     <div className="App">
         <div className="App-header">
-            <img src = {imageurl.uri}/>
-            <TextField label = "Image Name" value = {imagetext} onChange={onChangeText}/>
-            <Button className = "btnStyle" variant="contained" color = "primary" onClick={viewPhoto}>Click Me!</Button>
-            <DatePicker dateFormat="yyyy/MM/dd" selected={startdate} onChange={date => setstartdate(date)} />
-            <DatePicker dateFormat="yyyy/MM/dd" selected={enddate} onChange={date => setenddate(date)}/>
-            <Button className = "btnStyle" variant="contained" color = "primary" onClick={viewDate}>Click Me!</Button>
+            <div className="nameStyle">
+                <TextField label = "Image Name" value = {imagetext} onChange={onChangeText}/>
+                <Button className = "btnStyle" variant="contained" color = "primary" onClick={viewPhoto}>Click</Button>
+            </div>
+            <div className="dateBoxStyle">
+                <div className="dateStyle">
+                    Start Date
+                    <DatePicker dateFormat="yyyy/MM/dd" selected={startdate} onChange={date => setstartdate(date)} />
+                </div>
+                <div className="dateStyle"> End Date
+                    <DatePicker dateFormat="yyyy/MM/dd" selected={enddate} onChange={date => setenddate(date)}/>
+                </div>
+                <Button className = "btnStyle" variant="contained" color = "primary" onClick={viewDate}>Click</Button>
+            </div>
 
             <div className={classes.root}>
-                <GridList cellHeight={180} className={classes.gridList} cols={1}>
+                <GridList cellHeight='auto' className={classes.gridList} cols={1}>
                     <GridListTile key="Subheader" cols={1} style={{ height: 'auto' }}>
                         <ListSubheader component="div">Photo List</ListSubheader>
                     </GridListTile>
-                    {tileData.map((tile) => (
-                        <GridListTile key={tile.img}>
-                            <img src={tile.img} alt={tile.title} />
-                            <GridListTileBar
-                                className= {classes.titleBar}
-                                title={tile.title}
-                                subtitle={<span>date: {tile.date}</span>}
-                            />
-
-                        </GridListTile>
-                    ))}
+                    <div>
+                        {tileData.map((tile) => (
+                            <GridListTile key={tile.img}>
+                                    <img src={tile.img} alt={tile.title} />
+                                    <GridListTileBar
+                                        className= {classes.titleBar}
+                                        title={tile.title}
+                                        subtitle={<span>date: {tile.date}</span>}
+                                    />
+                            </GridListTile>
+                        ))}
+                    </div>
                 </GridList>
             </div>
 
