@@ -44,7 +44,7 @@ function App() {
 
     const viewPhoto=()=>
     {
-        client.post('http://localhost:3001/show', {name: imagetext})
+        client.post('/show', {name: imagetext})
             .then((response)=>
             {
                 settile(response.data)
@@ -55,7 +55,7 @@ function App() {
 
     const viewDate=()=>
     {
-        client.post('http://localhost:3001/view', {startdate: moment(startdate).format('YYYYMMDD'), enddate: moment(enddate).format('YYYYMMDD')})
+        client.post('/view', {startdate: moment(startdate).format('YYYYMMDD'), enddate: moment(enddate).format('YYYYMMDD')})
             .then(function(response)
                 {
                     settile(response.data)
