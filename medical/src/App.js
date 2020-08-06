@@ -19,12 +19,12 @@ const useStyles = makeStyles((theme) =>
 
     },
     gridList: {
-        width: 500,
-        height: 450,
+        width: "auto",
+        height: "auto",
 
     },
     titleBar : {
-        width: 100,
+        width: "auto",
         margin: "auto",
         background: 'rgba(0, 0, 0, 0.5)',
     }
@@ -78,39 +78,42 @@ function App() {
     return (
     <div className="App">
         <div className="App-header">
-            <div className="nameStyle">
-                <TextField label = "Image Name" value = {imagetext} onChange={onChangeText}/>
-                <Button className = "btnStyle" variant="contained" color = "primary" onClick={viewPhoto}>Click</Button>
-            </div>
-            <div className="dateBoxStyle">
-                <div className="dateStyle">
-                    Start Date
-                    <DatePicker dateFormat="yyyy/MM/dd" selected={startdate} onChange={date => setstartdate(date)} />
+            <div className="setBox">
+                <div className="nameStyle">
+                    <TextField label = "Image Name" value = {imagetext} onChange={onChangeText}/>
+                    <Button className = "btnStyle" variant="contained" color = "primary" onClick={viewPhoto}>Click</Button>
                 </div>
-                <div className="dateStyle"> End Date
-                    <DatePicker dateFormat="yyyy/MM/dd" selected={enddate} onChange={date => setenddate(date)}/>
-                </div>
-                <Button className = "btnStyle" variant="contained" color = "primary" onClick={viewDate}>Click</Button>
-            </div>
-
-            <div className={classes.root}>
-                <GridList cellHeight='auto' className={classes.gridList} cols={1}>
-                    <GridListTile key="Subheader" cols={1} style={{ height: 'auto' }}>
-                        <ListSubheader component="div">Photo List</ListSubheader>
-                    </GridListTile>
-                    <div>
-                        {tileData.map((tile) => (
-                            <GridListTile key={tile.img}>
-                                    <img src={tile.img} alt={tile.title} />
-                                    <GridListTileBar
-                                        className= {classes.titleBar}
-                                        title={tile.title}
-                                        subtitle={<span>date: {tile.date}</span>}
-                                    />
-                            </GridListTile>
-                        ))}
+                <div className="dateBoxStyle">
+                    <div className="dateStyle">
+                        Start Date
+                        <DatePicker dateFormat="yyyy/MM/dd" selected={startdate} onChange={date => setstartdate(date)} />
                     </div>
-                </GridList>
+                    <div className="dateStyle"> End Date
+                        <DatePicker dateFormat="yyyy/MM/dd" selected={enddate} onChange={date => setenddate(date)}/>
+                    </div>
+                    <Button className = "btnStyle" variant="contained" color = "primary" onClick={viewDate}>Click</Button>
+                </div>
+            </div>
+            <div className="imageBox">
+                <div className={classes.root}>
+                    <GridList cellHeight='auto' className={classes.gridList} cols={1}>
+                        <GridListTile key="Subheader" cols={1} style={{ height: 'auto' }}>
+                            <ListSubheader component="div">Photo List</ListSubheader>
+                        </GridListTile>
+                        <div>
+                            {tileData.map((tile) => (
+                                <GridListTile key={tile.img}>
+                                        <img src={tile.img} alt={tile.title} />
+                                        <GridListTileBar
+                                            className= {classes.titleBar}
+                                            title={tile.title}
+                                            subtitle={<span>date: {tile.date}</span>}
+                                        />
+                                </GridListTile>
+                            ))}
+                        </div>
+                    </GridList>
+                </div>
             </div>
 
         </div>

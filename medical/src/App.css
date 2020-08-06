@@ -14,7 +14,7 @@
 }
 
 .App-header {
-  margin-top: 10%;
+  margin-top: 5%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -25,6 +25,28 @@
 
 .App-link {
   color: #61dafb;
+}
+
+.setBox
+{
+  margin: 0 10%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 70%;
+  width: 70%;
+}
+
+.imageBox
+{
+  margin: 0 10%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60%;
+  width: 60%;
 }
 
 @keyframes App-logo-spin {
@@ -50,6 +72,7 @@ img {
 
 .btnStyle{
   width: 10%;
+  height: 20%
 }
 
 .dateStyle
@@ -63,6 +86,13 @@ img {
 {
   display: flex;
   line-height: 200%;
+}
+
+@media only screen and (max-width: 600px) {
+  .dateBoxStyle {
+    flex-direction: column;
+    align-items: center;
+  }
 }
 
 .GridListTileBar{

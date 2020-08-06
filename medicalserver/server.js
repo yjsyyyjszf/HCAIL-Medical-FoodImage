@@ -66,9 +66,6 @@ app.post("/show", (req, res)=>
 });
 
 
-app.listen(port, ()=>{
-    console.log(`express is running on ${port}`);
-})
 
 
 let readJson = () =>
@@ -95,7 +92,6 @@ let findImage = (start, end, list) =>
             if(start <= image.date && end >= image.date)
             {
                 let data = fs.readFileSync('./image/' + image.name);
-
                 let buf = Buffer.from(data);
                 let base64 = buf.toString('base64');
                 let url = "data:image/jpg;base64," + base64;
@@ -134,5 +130,11 @@ let findImageName = (name, list) =>
 }
 
 
+app.listen(port, ()=>{
+    console.log(`express is running on ${port}`);
+    readJson();
+})
 
-readJson();
+
+
+
