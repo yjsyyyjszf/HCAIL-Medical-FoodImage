@@ -3,7 +3,9 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const multer = require('multer')
+const multer = require('multer');
+const hound = require('hound');
+const sharp = require("sharp");
 const port =process.env.PORT || 3001;
 
 const storage = multer.diskStorage
@@ -26,7 +28,30 @@ app.use(cors());
 
 app.use(bodyParser.json());
 
-app.post("/view", (req, res)=>
+// 폴더에 사진 추가 되면 이를 로그로 보여줌
+watcher = hound.watch("./image", [])
+
+// json이 변경되면 json 읽어옴
+watcherJson = hound.watch("./image/ImageList.json", [])
+
+watcher.on('create', function(file, stats)
+{
+    console.log(file + " was created")
+})
+
+watcherJson.on('change', function(file, stats)
+{
+    console.log(file + " was changed")
+    readJson().then((list)=>imageResize(list))
+})
+
+watcher.on('delete', function(file, stats)
+{
+    console.log(file + " was deleted")
+})
+
+// 날짜로 사진 검색해서 넘겨줌
+app.post("/date", (req, res)=>
 {
     try
     {
@@ -45,7 +70,8 @@ app.post("/view", (req, res)=>
 
 });
 
-app.post("/show", (req, res)=>
+// 이름으로 사진 검색해서 넘겨줌
+app.post("/name", (req, res)=>
 {
     try
     {
@@ -65,23 +91,28 @@ app.post("/show", (req, res)=>
 
 });
 
-
-
-
+// image json 파일 읽어옴
 let readJson = () =>
 {
-    try
+    return new Promise(resolve=>
     {
-        let rawdata = fs.readFileSync("./image/ImageList.json");
-        imageList = JSON.parse(rawdata);
-        console.log(imageList);
-    }
-    catch(err)
-    {
-        console.log(err)
-    }
+        try
+        {
+            imageList.length = 0;
+            let rawdata = fs.readFileSync("./image/ImageList.json");
+            imageList = JSON.parse(rawdata);
+            console.log(imageList);
+            resolve(imageList)
+        }
+        catch(err)
+        {
+            console.log(err)
+        }
+    });
 }
 
+
+// 날짜 기준으로 사진 검색 후 리스트 만듬
 let findImage = (start, end, list) =>
 {
     let nlist = []
@@ -91,7 +122,7 @@ let findImage = (start, end, list) =>
         {
             if(start <= image.date && end >= image.date)
             {
-                let data = fs.readFileSync('./image/' + image.name);
+                let data = fs.readFileSync('./image/small_' + image.name);
                 let buf = Buffer.from(data);
                 let base64 = buf.toString('base64');
                 let url = "data:image/jpg;base64," + base64;
@@ -105,6 +136,8 @@ let findImage = (start, end, list) =>
     })
 }
 
+
+// 이름 기준으로 사진 검색해서 리스트 만듬
 let findImageName = (name, list) =>
 {
     return new Promise((resolve)=>
@@ -117,7 +150,7 @@ let findImageName = (name, list) =>
                 console.log(name)
                 console.log(image.name)
                 console.log(name === image.name)
-                let data = fs.readFileSync('./image/' + image.name);
+                let data = fs.readFileSync('./image/small_' + image.name);
                 let buf = Buffer.from(data);
                 let base64 = buf.toString('base64');
                 let url = "data:image/jpg;base64," + base64;
@@ -129,7 +162,20 @@ let findImageName = (name, list) =>
     })
 }
 
+let imageResize = (list) =>
+{
+    console.log("resize")
+    list.map(image=>
+    {
+        sharp("./image/"+image.name)
+            .resize({width:900})
+            .toFile("./image/small_"+image.name)
+        console.log(image.name)
+    })
+}
 
+
+// 실행하자마자 json 읽어옴
 app.listen(port, ()=>{
     console.log(`express is running on ${port}`);
     readJson();
