@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Button, TextField, GridList, GridListTile, GridListTileBar, ListSubheader} from '@material-ui/core'
+import {Button, TextField, GridList, GridListTile, GridListTileBar, ListSubheader, ListItem, ListItemText} from '@material-ui/core'
 import {makeStyles} from "@material-ui/core/styles";
 import DatePicker from "react-datepicker";
 import moment from "moment";
@@ -30,11 +30,13 @@ const useStyles = makeStyles((theme) =>
     }
 }));
 
+
 function App() {
     const [imagetext, setimagetext] = useState('');
     const [startdate, setstartdate] = useState(new Date());
     const [enddate, setenddate] = useState(new Date());
     const [tileData, settile] = useState([]);
+    const [dataSet, setdataset] = useState([]);
 
 
     const onChangeText = e =>
@@ -42,9 +44,10 @@ function App() {
         setimagetext(e.target.value)
     }
 
-    const viewPhoto=()=>
+
+    const viewPhoto=(imgname)=>
     {
-        client.post('/name', {name: imagetext})
+        client.post('/name', {name: imgname})
             .then((response)=>
             {
                 settile(response.data)
@@ -57,23 +60,27 @@ function App() {
     {
         client.post('/date', {startdate: moment(startdate).format('YYYYMMDD'), enddate: moment(enddate).format('YYYYMMDD')})
             .then(function(response)
-                {
-                    settile(response.data)
-                    console.log(response)
-                    console.log(tileData.length)
-                })
+            {
+                settile(response.data)
+                console.log(response)
+                console.log(tileData.length)
+            })
             .catch(error => {console.log('error : ', error.response)})
     }
 
+    const getList=()=>
+    {
+        client.get('/get',)
+            .then((response)=>
+            {
+                setdataset(response.data)
+                console.log(dataSet)
+            })
+            .catch(error => {console.log('error : ', error.response)})
+    }
+
+
     const classes = useStyles();
-
-
-
-    //{
-        //img: '',
-        //title: '',
-        //https://picsum.photos/id/1018/1000/600/
-    //},
 
     return (
     <div className="App">
@@ -81,7 +88,7 @@ function App() {
             <div className="setBox">
                 <div className="nameStyle">
                     <TextField label = "Image Name" value = {imagetext} onChange={onChangeText}/>
-                    <Button className = "btnStyle" variant="contained" color = "primary" onClick={viewPhoto}>Click</Button>
+                    <Button className = "btnStyle" variant="contained" color = "primary" onClick={()=>viewPhoto(imagetext)}>Click</Button>
                 </div>
                 <div className="dateBoxStyle">
                     <div className="dateStyle">
@@ -92,6 +99,20 @@ function App() {
                         <DatePicker dateFormat="yyyy/MM/dd" selected={enddate} onChange={date => setenddate(date)}/>
                     </div>
                     <Button className = "btnStyle" variant="contained" color = "primary" onClick={viewDate}>Click</Button>
+                </div>
+            </div>
+            <div>
+                <div className={classes.root}>
+                    <ListItem button onClick={getList}>
+                        <ListItemText primary={"VIEW"}/>
+                    </ListItem>
+                    {dataSet.map((data)=>
+                        (
+                            <ListItem button key={data.name} onClick={()=>viewPhoto(data.name)}>
+                                <ListItemText primary={data.name} secondary={data.date}/>
+                            </ListItem>
+                        )
+                    )}
                 </div>
             </div>
             <div className="imageBox">
@@ -115,9 +136,7 @@ function App() {
                     </GridList>
                 </div>
             </div>
-
         </div>
-
     </div>
   );
 }

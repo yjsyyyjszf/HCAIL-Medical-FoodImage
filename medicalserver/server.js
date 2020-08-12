@@ -78,7 +78,6 @@ app.post("/name", (req, res)=>
         findImageName(req.body.name, imageList)
             .then((data)=>
             {
-                console.log(data.name)
                 res.send(data)
             })
     }
@@ -90,6 +89,19 @@ app.post("/name", (req, res)=>
 
 
 });
+
+app.get("/get", (req,res)=>
+{
+    try
+    {
+        res.send(imageList)
+    }
+    catch(err)
+    {
+        console.log(err)
+        res.send(500)
+    }
+})
 
 // image json 파일 읽어옴
 let readJson = () =>
@@ -147,8 +159,6 @@ let findImageName = (name, list) =>
         {
             if(name === image.name)
             {
-                console.log(name)
-                console.log(image.name)
                 console.log(name === image.name)
                 let data = fs.readFileSync('./image/small_' + image.name);
                 let buf = Buffer.from(data);
