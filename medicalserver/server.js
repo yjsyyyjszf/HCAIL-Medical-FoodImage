@@ -67,7 +67,6 @@ app.post("/date", (req, res)=>
         console.log(err)
         res.send(500);
     }
-
 });
 
 // 이름으로 사진 검색해서 넘겨줌
@@ -86,9 +85,32 @@ app.post("/name", (req, res)=>
         console.log(err)
         res.send(500);
     }
-
-
 });
+
+app.post("/sendcomment", (req,res)=>
+{
+    try
+    {
+        addComment(req.body.name, req.body.comment, imageList)
+            .then((data)=>
+            {
+                let list = JSON.stringify(imageList)
+                fs.writeFile('./image/ImageList.json', list, 'utf-8', err =>
+                {
+                    if(err) throw err;
+                    console.log('save json!');
+                })
+                console.log(imageList)
+                console.log(data)
+            })
+    }
+    catch (err)
+    {
+        console.log(err)
+        res.send(500);
+    }
+
+})
 
 app.get("/get", (req,res)=>
 {
@@ -140,7 +162,6 @@ let findImage = (start, end, list) =>
                 let url = "data:image/jpg;base64," + base64;
                 let nImage = {"title":image.name, "date":image.date, "img": url}
                 nlist.push(nImage);
-
             }
         })
         console.log("encode")
@@ -167,6 +188,23 @@ let findImageName = (name, list) =>
                 let nImage = {"title":image.name, "date":image.date, "img": url}
                 console.log(nImage.title)
                 resolve([nImage]);
+            }
+        })
+    })
+}
+
+let addComment = (name, comment, list) =>
+{
+    return new Promise((resolve)=>
+    {
+        console.log("add")
+        list.map((image)=>
+        {
+            if(name === image.name)
+            {
+                console.log(name === image.name)
+                image.comment = comment;
+                resolve(image);
             }
         })
     })

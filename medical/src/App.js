@@ -37,11 +37,27 @@ function App() {
     const [enddate, setenddate] = useState(new Date());
     const [tileData, settile] = useState([]);
     const [dataSet, setdataset] = useState([]);
+    const [comment, setcomment] = useState('');
 
 
     const onChangeText = e =>
     {
         setimagetext(e.target.value)
+    }
+
+    const onChangeComment = e =>
+    {
+        setcomment(e.target.value)
+    }
+
+    const sendComment=(imgname)=>
+    {
+        client.post('/sendcomment', {name: imgname, comment: comment})
+            .then((response)=>
+            {
+                console.log("GOOD")
+            })
+            .catch((err)=>{console.log(err)})
     }
 
 
@@ -100,19 +116,19 @@ function App() {
                     </div>
                     <Button className = "btnStyle" variant="contained" color = "primary" onClick={viewDate}>Click</Button>
                 </div>
-            </div>
-            <div>
-                <div className={classes.root}>
-                    <ListItem button onClick={getList}>
-                        <ListItemText primary={"VIEW"}/>
-                    </ListItem>
-                    {dataSet.map((data)=>
-                        (
-                            <ListItem button key={data.name} onClick={()=>viewPhoto(data.name)}>
-                                <ListItemText primary={data.name} secondary={data.date}/>
-                            </ListItem>
-                        )
-                    )}
+                <div>
+                    <div className={classes.root}>
+                        <ListItem button key="list" onClick={getList}>
+                            <ListItemText primary={"VIEW"}/>
+                        </ListItem>
+                        {dataSet.map((data)=>
+                            (
+                                <ListItem button key={data.name} onClick={()=>viewPhoto(data.name)}>
+                                    <ListItemText primary={data.name} secondary={data.date}/>
+                                </ListItem>
+                            )
+                        )}
+                    </div>
                 </div>
             </div>
             <div className="imageBox">
@@ -123,14 +139,31 @@ function App() {
                         </GridListTile>
                         <div>
                             {tileData.map((tile) => (
-                                <GridListTile key={tile.img}>
+                                <div>
+                                    <GridListTile key={tile.img}>
                                         <img src={tile.img} alt={tile.title} />
                                         <GridListTileBar
                                             className= {classes.titleBar}
                                             title={tile.title}
                                             subtitle={<span>date: {tile.date}</span>}
                                         />
-                                </GridListTile>
+                                    </GridListTile>
+                                    <div>
+                                        <ListItem button onClick={()=>sendComment(tile.title)} style={{backgroundColor: 'green'}}>
+                                            <ListItemText primary={"Send"} style={{color: 'white'}} />
+                                        </ListItem>
+                                        <TextField
+                                            id="outlined-multiline-static"
+                                            multiline
+                                            rows={4}
+                                            defaultValue="Default Value"
+                                            style={{ margin: 8, height: 'auto' }}
+                                            variant="outlined"
+                                            fullWidth
+                                            onChange={onChangeComment}
+                                        />
+                                    </div>
+                                </div>
                             ))}
                         </div>
                     </GridList>
