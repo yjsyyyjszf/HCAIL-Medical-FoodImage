@@ -112,6 +112,21 @@ app.post("/sendcomment", (req,res)=>
 
 })
 
+app.post("/photosave", (req, res) =>
+{
+    try
+    {
+        console.log(req.body.photoStr)
+        console.log(req.body.date)
+        res.send(req.body.photoStr)
+    }
+    catch(err)
+    {
+        console.log(err)
+        res.send(500);
+    }
+})
+
 app.get("/get", (req,res)=>
 {
     try
