@@ -7,6 +7,7 @@ const multer = require('multer');
 const hound = require('hound');
 const sharp = require("sharp");
 const port =process.env.PORT || 3001;
+const logger = require('morgan');
 
 const storage = multer.diskStorage
 ({
@@ -24,6 +25,7 @@ const upload = multer({storage:storage})
 
 let imageList = [];
 
+app.use(logger('dev'))
 app.use(cors());
 
 app.use(bodyParser.json());
@@ -239,7 +241,7 @@ let imageResize = (list) =>
 
 
 // 실행하자마자 json 읽어옴
-app.listen(port, ()=>{
+app.listen(port,'0.0.0.0' ,()=>{
     console.log(`express is running on ${port}`);
     readJson();
 })
