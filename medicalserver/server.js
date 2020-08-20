@@ -6,7 +6,7 @@ const bodyParser = require('body-parser');
 const multer = require('multer');
 const hound = require('hound');
 const sharp = require("sharp");
-const port =process.env.PORT || 3001;
+const port =process.env.PORT || 3000;
 
 const storage = multer.diskStorage
 ({

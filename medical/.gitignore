@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+/medical/node_modules
+/medicalserver/node_modules
 /.pnp
 .pnp.js
 
