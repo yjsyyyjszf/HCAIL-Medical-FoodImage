@@ -9,7 +9,7 @@ const sharp = require("sharp");
 const port =process.env.PORT || 3001;
 const logger = require('morgan');
 const mongoose = require("mongoose");
-const FRdb = require("model");
+const FRdb = require("./model");
 
 mongoose.connect("mongodb://localhost:27017/FRdb",
     {
