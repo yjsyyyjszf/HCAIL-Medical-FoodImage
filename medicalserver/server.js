@@ -47,10 +47,11 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.json({
     limit: "100mb",
+    extended: true,
 }))
 app.use(express.urlencoded({
     limit: "100mb",
-    extended: false,
+    extended: true,
 }))
 // 폴더에 사진 추가 되면 이를 로그로 보여줌
 watcher = hound.watch("./image", [])
