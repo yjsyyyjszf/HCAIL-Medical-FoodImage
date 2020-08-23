@@ -16,4 +16,7 @@ FRdbSchema.statics.findByPhotoname = function (photoname)
     return this.findOne({photoname});
 }
 
+const FRdb = mongoose.model("FRdb", FRdbSchema)
+module.exports = FRdb
+
 
