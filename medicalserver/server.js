@@ -9,6 +9,7 @@ const sharp = require("sharp");
 const port =process.env.PORT || 3001;
 const logger = require('morgan');
 const mongoose = require("mongoose");
+const moment = require("moment")
 const FRdb = require("./model");
 
 mongoose.connect("mongodb://localhost:27017/FRdb",
@@ -141,8 +142,12 @@ app.post("/photosave", (req, res) =>
 {
     try
     {
-        console.log(req.body.photoStr)
-        console.log(req.body.date)
+        let time = moment(req.body.date).format("YYYYMMDDHHmmss")
+        fs.writeFile('./image/'+time+".jpg", req.body.photoStr, 'base64', err =>
+        {
+            if(err) throw err;
+            console.log('save image!');
+        })
         res.send(200)
     }
     catch(err)
