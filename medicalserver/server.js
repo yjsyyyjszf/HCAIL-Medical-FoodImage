@@ -8,6 +8,23 @@ const hound = require('hound');
 const sharp = require("sharp");
 const port =process.env.PORT || 3001;
 const logger = require('morgan');
+const mongoose = require("mongoose");
+const FRdb = require("model");
+
+mongoose.connect("mongodb://localhost:27017/FRdb",
+    {
+        useNewUrlParser: true,
+        useFindAndModify: false,
+        useUnifiedTopology: true,
+    }).then(()=>
+    {
+        console.log("Connected to MongoDB");
+    })
+    .catch((e)=>
+    {
+        console.log(e);
+    })
+
 
 const storage = multer.diskStorage
 ({
@@ -27,9 +44,14 @@ let imageList = [];
 
 app.use(logger('dev'))
 app.use(cors());
-
 app.use(bodyParser.json());
-
+app.use(express.json({
+    limit: "100mb",
+}))
+app.use(express.urlencoded({
+    limit: "100mb",
+    extended: false,
+}))
 // 폴더에 사진 추가 되면 이를 로그로 보여줌
 watcher = hound.watch("./image", [])
 
