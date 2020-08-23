@@ -10,8 +10,19 @@ const port =process.env.PORT || 3001;
 const logger = require('morgan');
 const mongoose = require("mongoose");
 const moment = require("moment")
+
 const FRdb = require("./model");
 
+
+app.use(express.json({
+    limit: "50mb"
+}))
+app.use(express.urlencoded({
+    limit: "50mb"
+}))
+app.use(bodyParser.json({limit: '50mb'}))
+app.use(bodyParser.urlencoded({limit:'50mb', extended: true, parameterLimit:true }))
+app.use(bodyParser.json());
 mongoose.connect("mongodb://localhost:27017/FRdb",
     {
         useNewUrlParser: true,
@@ -23,7 +34,7 @@ mongoose.connect("mongodb://localhost:27017/FRdb",
     })
     .catch((e)=>
     {
-        console.log(e);
+        //console.log(e);
     })
 
 
@@ -45,15 +56,7 @@ let imageList = [];
 
 app.use(logger('dev'))
 app.use(cors());
-app.use(bodyParser.json());
-app.use(express.json({
-    limit: "100mb",
-    extended: true,
-}))
-app.use(express.urlencoded({
-    limit: "100mb",
-    extended: true,
-}))
+
 // 폴더에 사진 추가 되면 이를 로그로 보여줌
 watcher = hound.watch("./image", [])
 
@@ -140,14 +143,33 @@ app.post("/sendcomment", (req,res)=>
 
 app.post("/photosave", (req, res) =>
 {
+    let {photoStr, date, longitude, latitude} = req.body
+    console.log(longitude)
+    console.log(latitude)
     try
     {
-        let time = moment(req.body.date).format("YYYYMMDDHHmmss")
-        fs.writeFile('./image/'+time+".jpg", req.body.photoStr, 'base64', err =>
+        let time = moment(date).add(9,'hours').format("YYYYMMDDHHmmss")
+        let data = {
+            name : time+'.jpg',
+            date : time,
+            longitude : longitude,
+            latitude : latitude,
+        }
+
+        fs.writeFile('./image/'+time+".jpg", String(photoStr), {encoding: 'base64'}, err =>
         {
             if(err) throw err;
             console.log('save image!');
-        })
+            imageList.push(data)
+            fs.writeFile('./image/ImageList.json', JSON.stringify(imageList), 'utf-8', err =>
+                {
+                    if(err) throw err;
+                    console.log('save json!');
+                })
+            console.log(imageList)
+        }) 
+
+        
         res.send(200)
     }
     catch(err)
