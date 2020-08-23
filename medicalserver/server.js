@@ -142,7 +142,7 @@ app.post("/photosave", (req, res) =>
     {
         console.log(req.body.photoStr)
         console.log(req.body.date)
-        res.send(req.body.photoStr)
+        res.send(200)
     }
     catch(err)
     {
