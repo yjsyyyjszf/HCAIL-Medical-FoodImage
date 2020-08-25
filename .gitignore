@@ -1,1 +1,4 @@
 node_modules
+./medical/node_modules
+./medicalserver/node_modules
+./medicalserver/image

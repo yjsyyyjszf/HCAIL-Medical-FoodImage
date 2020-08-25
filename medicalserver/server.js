@@ -151,7 +151,7 @@ app.post("/photosave", (req, res) =>
         let time = moment(date).add(9,'hours').format("YYYYMMDDHHmmss")
         let data = {
             name : time+'.jpg',
-            date : time,
+            date : moment(date).add(9,'hours').format("YYYYMMDD"),
             longitude : longitude,
             latitude : latitude,
         }
