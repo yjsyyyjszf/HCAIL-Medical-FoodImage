@@ -11,7 +11,7 @@ const logger = require('morgan');
 const mongoose = require("mongoose");
 const moment = require("moment")
 
-const FRdb = require("./model");
+const FRModel = require("./model");
 
 
 app.use(express.json({
@@ -23,6 +23,7 @@ app.use(express.urlencoded({
 app.use(bodyParser.json({limit: '50mb'}))
 app.use(bodyParser.urlencoded({limit:'50mb', extended: true, parameterLimit:true }))
 app.use(bodyParser.json());
+
 mongoose.connect("mongodb://localhost:27017/FRdb",
     {
         useNewUrlParser: true,
@@ -34,7 +35,7 @@ mongoose.connect("mongodb://localhost:27017/FRdb",
     })
     .catch((e)=>
     {
-        //console.log(e);
+        console.log(e);
     })
 
 
@@ -78,6 +79,52 @@ watcher.on('delete', function(file, stats)
 {
     console.log(file + " was deleted")
 })
+
+// DB에 추가하기
+let addUserToDB=(data, callback)=>
+{
+    console.log('addUser 호출됨 : ' +data.name);
+    changePhotoToUrl(data).then((url, smallUrl)=>
+    {
+        let photo = new FRModel({
+            "photoname": data.name,
+            "latitude" : data.latitude,
+            "longitude" : data.longitude,
+            "date": data.date,
+            "img" : url,
+            "encodeImg" : smallUrl,
+        });
+
+        photo.save(function (err)
+        {
+            if(err)
+            {
+                callback(err, null);
+                console.log("실패");
+                return;
+            }
+            console.log("데이터 추가함");
+            callback(null, photo);
+        })
+    })
+}
+
+let changePhotoToUrl=(data)=>
+{
+    return new Promise((resolve)=>
+    {
+        let smallPhotoUrl = fs.readFileSync('./image/small_' + data.name +'.jpg');
+        let photoUrl = fs.readFileSync('./image/' + data.name +'.jpg');
+        let buf = Buffer.from(photoUrl);
+        let smallbuf = Buffer.from(smallPhotoUrl)
+        let base64 = buf.toString('base64');
+        let smallbase64 = smallbuf.toString('base64');
+        let url = "data:image/jpg;base64," + base64;
+        let smallUrl = "data:image/jpg;base64," +smallbase64;
+        resolve(url, smallUrl);
+    })
+}
+
 
 // 날짜로 사진 검색해서 넘겨줌
 app.post("/date", (req, res)=>
@@ -166,6 +213,7 @@ app.post("/photosave", (req, res) =>
                     if(err) throw err;
                     console.log('save json!');
                 })
+            addUserToDB(data, ()=>console.log("Can't add photo to DB"))
             console.log(imageList)
         }) 
 
