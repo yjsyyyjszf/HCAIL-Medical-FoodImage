@@ -10,7 +10,19 @@ const port =process.env.PORT || 3001;
 const logger = require('morgan');
 const mongoose = require("mongoose");
 const moment = require("moment")
-const FRdb = require("./model");
+
+const FRModel = require("./model");
+
+
+app.use(express.json({
+    limit: "50mb"
+}))
+app.use(express.urlencoded({
+    limit: "50mb"
+}))
+app.use(bodyParser.json({limit: '50mb'}))
+app.use(bodyParser.urlencoded({limit:'50mb', extended: true, parameterLimit:true }))
+app.use(bodyParser.json());
 
 mongoose.connect("mongodb://localhost:27017/FRdb",
     {
@@ -45,15 +57,7 @@ let imageList = [];
 
 app.use(logger('dev'))
 app.use(cors());
-app.use(bodyParser.json());
-app.use(express.json({
-    limit: "100mb",
-    extended: true,
-}))
-app.use(express.urlencoded({
-    limit: "100mb",
-    extended: true,
-}))
+
 // 폴더에 사진 추가 되면 이를 로그로 보여줌
 watcher = hound.watch("./image", [])
 
@@ -75,6 +79,51 @@ watcher.on('delete', function(file, stats)
 {
     console.log(file + " was deleted")
 })
+
+// DB에 추가하기
+let addUserToDB=(data, callback)=>
+{
+    console.log('addUser 호출됨 : ' +data.name);
+    changePhotoToUrl(data).then((url, smallUrl)=>
+    {
+        let photo = new FRModel({
+            "photoname": data.name,
+            "latitude" : data.latitude,
+            "longitude" : data.longitude,
+            "date": data.date,
+            "img" : url,
+            "encodeImg" : smallUrl,
+        });
+
+        photo.save(function (err)
+        {
+            if(err)
+            {
+                callback(err, null);
+                console.log("실패");
+                return;
+            }
+            console.log("데이터 추가함");
+            callback(null, photo);
+        })
+    })
+}
+
+let changePhotoToUrl=(data)=>
+{
+    return new Promise((resolve)=>
+    {
+        let smallPhotoUrl = fs.readFileSync('./image/small_' + data.name +'.jpg');
+        let photoUrl = fs.readFileSync('./image/' + data.name +'.jpg');
+        let buf = Buffer.from(photoUrl);
+        let smallbuf = Buffer.from(smallPhotoUrl)
+        let base64 = buf.toString('base64');
+        let smallbase64 = smallbuf.toString('base64');
+        let url = "data:image/jpg;base64," + base64;
+        let smallUrl = "data:image/jpg;base64," +smallbase64;
+        resolve(url, smallUrl);
+    })
+}
 
 // 날짜로 사진 검색해서 넘겨줌
 app.post("/date", (req, res)=>
@@ -100,7 +149,7 @@ app.post("/name", (req, res)=>
 {
     try
     {
-        findImageName(req.body.name, imageList)
+        FRModel.findByPhotoname(req.body.name, imageList)
             .then((data)=>
             {
                 res.send(data)
@@ -140,14 +189,34 @@ app.post("/sendcomment", (req,res)=>
 
 app.post("/photosave", (req, res) =>
 {
+    let {photoStr, date, longitude, latitude} = req.body
+    console.log(longitude)
+    console.log(latitude)
     try
     {
-        let time = moment(req.body.date).format("YYYYMMDDHHmmss")
-        fs.writeFile('./image/'+time+".jpg", req.body.photoStr, 'base64', err =>
+        let time = moment(date).add(9,'hours').format("YYYYMMDDHHmmss")
+        let data = {
+            name : time+'.jpg',
+            date : moment(date).add(9,'hours').format("YYYYMMDD"),
+            longitude : longitude,
+            latitude : latitude,
+        }
+
+        fs.writeFile('./image/'+time+".jpg", String(photoStr), {encoding: 'base64'}, err =>
         {
             if(err) throw err;
             console.log('save image!');
-        })
+            imageList.push(data)
+            fs.writeFile('./image/ImageList.json', JSON.stringify(imageList), 'utf-8', err =>
+                {
+                    if(err) throw err;
+                    console.log('save json!');
+                })
+            addUserToDB(data, ()=>console.log("Can't add photo to DB"))
+            console.log(imageList)
+        }) 
+
+        
         res.send(200)
     }
     catch(err)
