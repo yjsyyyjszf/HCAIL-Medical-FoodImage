@@ -125,7 +125,6 @@ let changePhotoToUrl=(data)=>
     })
 }
 
-
 // 날짜로 사진 검색해서 넘겨줌
 app.post("/date", (req, res)=>
 {
@@ -150,7 +149,7 @@ app.post("/name", (req, res)=>
 {
     try
     {
-        findImageName(req.body.name, imageList)
+        FRModel.findByPhotoname(req.body.name, imageList)
             .then((data)=>
             {
                 res.send(data)
