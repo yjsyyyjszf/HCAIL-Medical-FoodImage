@@ -16,6 +16,11 @@ FRdbSchema.statics.findByPhotoname = function (photoname)
     return this.findOne({photoname});
 }
 
+FRdbSchema.static.findByPhotodate = function (date)
+{
+    return this.findOne({date})
+}
+
 const FRModel = mongoose.model("FRmodel", FRdbSchema)
 module.exports = FRModel
 

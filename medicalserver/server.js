@@ -130,7 +130,7 @@ app.post("/date", (req, res)=>
 {
     try
     {
-        findImage(req.body.startdate, req.body.enddate, imageList)
+        findImageByDate(req.body.startdate, req.body.enddate, imageList)
             .then((list)=>
             {
                 console.log("size:"+list.length)
@@ -145,15 +145,13 @@ app.post("/date", (req, res)=>
 });
 
 // 이름으로 사진 검색해서 넘겨줌
-app.post("/name", (req, res)=>
+app.post("/name", async (req, res)=>
 {
     try
     {
-        FRModel.findByPhotoname(req.body.name, imageList)
-            .then((data)=>
-            {
-                res.send(data)
-            })
+        const data = await FRModel.findByPhotoname(req.body.name)
+        console.log(data)
+        res.send(data)
     }
     catch(err)
     {
@@ -214,9 +212,9 @@ app.post("/photosave", (req, res) =>
                 })
             addUserToDB(data, ()=>console.log("Can't add photo to DB"))
             console.log(imageList)
-        }) 
+        })
 
-        
+
         res.send(200)
     }
     catch(err)
@@ -283,6 +281,29 @@ let findImage = (start, end, list) =>
     })
 }
 
+let findImageByDate = async (start, end) =>
+{
+    const dateRange = await moment.duration(end.diff(start)).asDays();
+    let imageSet = []
+    if(dateRange < 0)
+    {
+        console.log(500)
+    }
+    for(let step = 0; step > dateRange; step++)
+    {
+        try {
+            let targetDate = await start.setDate(start.getDate() + 1)
+            let photo = await FRModel.findByPhotodate(targetDate);
+            imageSet.push(photo)
+        } catch (e) {
+            console.log(e)
+        }
+    }
+    return imageSet
+}
+
+
+
 
 // 이름 기준으로 사진 검색해서 리스트 만듬
 let findImageName = (name, list) =>
@@ -340,7 +361,7 @@ let imageResize = (list) =>
 // 실행하자마자 json 읽어옴
 app.listen(port,'0.0.0.0' ,()=>{
     console.log(`express is running on ${port}`);
-    readJson();
+    //readJson();
 })
 
 
