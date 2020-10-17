@@ -9,6 +9,7 @@ const FRdbSchema = new Schema({
     longitude: String,
     img : String,
     encodeImg : String,
+    comment : String,
 })
 
 FRdbSchema.statics.findByPhotoname = function (photoname)
