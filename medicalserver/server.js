@@ -1,11 +1,9 @@
-const fs=require('fs');
 const express = require('express');
 const app = express();
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const multer = require('multer');
-const hound = require('hound');
-const sharp = require("sharp");
+//const multer = require('multer');
+const resizebase64 = require('resize-base64')
 const port =process.env.PORT || 3001;
 const logger = require('morgan');
 const mongoose = require("mongoose");
@@ -38,7 +36,7 @@ mongoose.connect("mongodb://localhost:27017/FRdb",
         console.log(e);
     })
 
-
+/*
 const storage = multer.diskStorage
 ({
     destination: function (req,file,callback)
@@ -50,49 +48,27 @@ const storage = multer.diskStorage
         callback(null, (file.originalname));
     }
 });
+ */
 
-const upload = multer({storage:storage})
-
-let imageList = [];
+//const upload = multer({storage:storage})
 
 app.use(logger('dev'))
 app.use(cors());
 
-// 폴더에 사진 추가 되면 이를 로그로 보여줌
-watcher = hound.watch("./image", [])
 
-// json이 변경되면 json 읽어옴
-watcherJson = hound.watch("./image/ImageList.json", [])
-
-watcher.on('create', function(file, stats)
+let addPhotoToDB=(data, callback)=>
 {
-    console.log(file + " was created")
-})
-
-watcherJson.on('change', function(file, stats)
-{
-    console.log(file + " was changed")
-    readJson().then((list)=>imageResize(list))
-})
-
-watcher.on('delete', function(file, stats)
-{
-    console.log(file + " was deleted")
-})
-
-// DB에 추가하기
-let addUserToDB=(data, callback)=>
-{
-    console.log('addUser 호출됨 : ' +data.name);
-    changePhotoToUrl(data).then((url, smallUrl)=>
+    console.log('AddPhoto : ' +data.name);
+    imageResize(data.photoStr).then((smallUrl)=>
     {
         let photo = new FRModel({
             "photoname": data.name,
             "latitude" : data.latitude,
             "longitude" : data.longitude,
             "date": data.date,
-            "img" : url,
+            "img" : data.photoStr,
             "encodeImg" : smallUrl,
+            "comment" : null,
         });
 
         photo.save(function (err)
@@ -100,16 +76,145 @@ let addUserToDB=(data, callback)=>
             if(err)
             {
                 callback(err, null);
-                console.log("실패");
+                console.log("Error");
                 return;
             }
-            console.log("데이터 추가함");
+            console.log("Success");
             callback(null, photo);
         })
     })
 }
 
-let changePhotoToUrl=(data)=>
+// Find picture using date in DB
+app.post("/date", (req, res)=>
+{
+    try
+    {
+        findImageByDate(req.body.startdate, req.body.enddate)
+            .then((list)=>
+            {
+                console.log("size:"+list.length)
+                res.send(list)
+            })
+    }
+    catch(err)
+    {
+        console.log(err)
+        res.send(500);
+    }
+});
+
+// Find picture using photo name in DB
+app.post("/name", async (req, res)=>
+{
+    try
+    {
+        const data = await FRModel.findByPhotoname(req.body.name)
+        console.log(data)
+        res.send(data)
+    }
+    catch(err)
+    {
+        console.log(err)
+        res.send(500);
+    }
+});
+
+
+// Todo: Fix /sendcomment api (connect DB)
+app.post("/sendcomment", async (req,res)=>
+{
+    try
+    {
+        console.log("Add comment")
+        const data = await FRModel.findByPhotoname(req.body.name)
+        data.comment = await req.body.comment;
+        data.save(function (err)
+        {
+            if(err)
+            {
+                console.log(">> Error");
+                return;
+            }
+            console.log(">> Success");
+        })
+    }
+    catch (err)
+    {
+        console.log(err)
+        res.send(500);
+    }
+
+})
+
+app.post("/photosave", (req, res) =>
+{
+    console.log(req.body.longitude)
+    try
+    {
+        addPhotoToDB(req.body, ()=>console.log("Can't add photo to DB"))
+        res.send(200)
+    }
+    catch(err)
+    {
+        console.log(err)
+        res.send(500);
+    }
+})
+
+
+let findImageByDate = async (start, end) =>
+{
+    const dateRange = await moment.duration(end.diff(start)).asDays();
+    let imageSet = []
+    if(dateRange < 0)
+    {
+        console.log(500)
+    }
+    for(let step = 0; step > dateRange; step++)
+    {
+        try {
+            let targetDate = await start.setDate(start.getDate() + 1)
+            let photo = await FRModel.findByPhotodate(targetDate);
+            imageSet.push(photo)
+        } catch (e) {
+            console.log(e)
+        }
+    }
+    return imageSet
+}
+
+let imageResize = (photoStr) =>
+{
+    console.log("resize")
+    return resizebase64(photoStr, 900, 900)
+}
+
+
+app.listen(port,'0.0.0.0' ,()=>{
+    console.log(`express is running on ${port}`);
+})
+
+//const fs=require('fs');
+
+/*
+addComment(req.body.name, req.body.comment, imageList)
+    .then((data)=>
+    {
+        let list = JSON.stringify(imageList)
+        fs.writeFile('./image/ImageList.json', list, 'utf-8', err =>
+        {
+            if(err) throw err;
+            console.log('save json!');
+        })
+        console.log(imageList)
+        console.log(data)
+    })
+
+ */
+
+/*
+let changePhotoToUrl=(photoStr)=>
 {
     return new Promise((resolve)=>
     {
@@ -124,108 +229,9 @@ let changePhotoToUrl=(data)=>
         resolve(url, smallUrl);
     })
 }
+ */
 
-// 날짜로 사진 검색해서 넘겨줌
-app.post("/date", (req, res)=>
-{
-    try
-    {
-        findImage(req.body.startdate, req.body.enddate, imageList)
-            .then((list)=>
-            {
-                console.log("size:"+list.length)
-                res.send(list)
-            })
-    }
-    catch(err)
-    {
-        console.log(err)
-        res.send(500);
-    }
-});
-
-// 이름으로 사진 검색해서 넘겨줌
-app.post("/name", (req, res)=>
-{
-    try
-    {
-        FRModel.findByPhotoname(req.body.name, imageList)
-            .then((data)=>
-            {
-                res.send(data)
-            })
-    }
-    catch(err)
-    {
-        console.log(err)
-        res.send(500);
-    }
-});
-
-app.post("/sendcomment", (req,res)=>
-{
-    try
-    {
-        addComment(req.body.name, req.body.comment, imageList)
-            .then((data)=>
-            {
-                let list = JSON.stringify(imageList)
-                fs.writeFile('./image/ImageList.json', list, 'utf-8', err =>
-                {
-                    if(err) throw err;
-                    console.log('save json!');
-                })
-                console.log(imageList)
-                console.log(data)
-            })
-    }
-    catch (err)
-    {
-        console.log(err)
-        res.send(500);
-    }
-
-})
-
-app.post("/photosave", (req, res) =>
-{
-    let {photoStr, date, longitude, latitude} = req.body
-    console.log(longitude)
-    console.log(latitude)
-    try
-    {
-        let time = moment(date).add(9,'hours').format("YYYYMMDDHHmmss")
-        let data = {
-            name : time+'.jpg',
-            date : moment(date).add(9,'hours').format("YYYYMMDD"),
-            longitude : longitude,
-            latitude : latitude,
-        }
-
-        fs.writeFile('./image/'+time+".jpg", String(photoStr), {encoding: 'base64'}, err =>
-        {
-            if(err) throw err;
-            console.log('save image!');
-            imageList.push(data)
-            fs.writeFile('./image/ImageList.json', JSON.stringify(imageList), 'utf-8', err =>
-                {
-                    if(err) throw err;
-                    console.log('save json!');
-                })
-            addUserToDB(data, ()=>console.log("Can't add photo to DB"))
-            console.log(imageList)
-        }) 
-
-        
-        res.send(200)
-    }
-    catch(err)
-    {
-        console.log(err)
-        res.send(500);
-    }
-})
-
+/*
 app.get("/get", (req,res)=>
 {
     try
@@ -238,29 +244,10 @@ app.get("/get", (req,res)=>
         res.send(500)
     }
 })
-
-// image json 파일 읽어옴
-let readJson = () =>
-{
-    return new Promise(resolve=>
-    {
-        try
-        {
-            imageList.length = 0;
-            let rawdata = fs.readFileSync("./image/ImageList.json");
-            imageList = JSON.parse(rawdata);
-            console.log(imageList);
-            resolve(imageList)
-        }
-        catch(err)
-        {
-            console.log(err)
-        }
-    });
-}
-
+*/
 
 // 날짜 기준으로 사진 검색 후 리스트 만듬
+/*
 let findImage = (start, end, list) =>
 {
     let nlist = []
@@ -282,9 +269,10 @@ let findImage = (start, end, list) =>
         resolve(nlist);
     })
 }
-
+*/
 
 // 이름 기준으로 사진 검색해서 리스트 만듬
+/*
 let findImageName = (name, list) =>
 {
     return new Promise((resolve)=>
@@ -306,12 +294,17 @@ let findImageName = (name, list) =>
         })
     })
 }
+*/
 
-let addComment = (name, comment, list) =>
+/*let addComment = async (name, comment, list) =>
 {
+    console.log("Add comment")
+    const data = await FRModel.findByPhotoname(req.body.name)
+    data.comment = comment;
+
     return new Promise((resolve)=>
     {
-        console.log("add")
+
         list.map((image)=>
         {
             if(name === image.name)
@@ -323,26 +316,4 @@ let addComment = (name, comment, list) =>
         })
     })
 }
-
-let imageResize = (list) =>
-{
-    console.log("resize")
-    list.map(image=>
-    {
-        sharp("./image/"+image.name)
-            .resize({width:900})
-            .toFile("./image/small_"+image.name)
-        console.log(image.name)
-    })
-}
-
-
-// 실행하자마자 json 읽어옴
-app.listen(port,'0.0.0.0' ,()=>{
-    console.log(`express is running on ${port}`);
-    readJson();
-})
-
-
-
-
+ */
