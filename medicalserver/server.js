@@ -166,6 +166,9 @@ app.post("/photosave", (req, res) =>
 
 let findImageByDate = async (start, end) =>
 {
+    console.log(typeof(end))
+    try
+    {
     // Todo : Fix diff (error  diff is undefined), Add try catch
     const dateRange = await end.diff(start, 'days');
     console.log(dateRange)
@@ -185,6 +188,12 @@ let findImageByDate = async (start, end) =>
         }
     }
     return imageSet
+    }
+    catch(err)
+    {
+        console.log(err)
+    }
+
 }
 
 let imageResize = (photoStr) =>
