@@ -91,6 +91,7 @@ app.post("/date", (req, res)=>
 {
     try
     {
+        console.log(typeof(req.body.enddate))
         findImageByDate(req.body.startdate, req.body.enddate)
             .then((list)=>
             {
@@ -122,7 +123,6 @@ app.post("/name", async (req, res)=>
 });
 
 
-// Todo: Fix /sendcomment api (connect DB)
 app.post("/sendcomment", async (req,res)=>
 {
     try
@@ -166,28 +166,30 @@ app.post("/photosave", (req, res) =>
 
 let findImageByDate = async (start, end) =>
 {
+    start = moment(start)
+    end = moment(end)
     console.log(typeof(end))
     try
     {
-    // Todo : Fix diff (error  diff is undefined), Add try catch
-    const dateRange = await end.diff(start, 'days');
-    console.log(dateRange)
-    let imageSet = []
-    if(dateRange < 0)
-    {
-        console.log(500)
-    }
-    for(let step = 0; step > dateRange; step++)
-    {
-        try {
-            let targetDate = await start.setDate(start.getDate() + 1)
-            let photo = await FRModel.findByPhotodate(targetDate);
-            imageSet.push(photo)
-        } catch (e) {
-            console.log(e)
+        // Todo : Fix diff (error  diff is undefined), Add try catch
+        const dateRange = await end.diff(start, 'days');
+        console.log(dateRange)
+        let imageSet = []
+        if(dateRange < 0)
+        {
+            console.log(500)
         }
-    }
-    return imageSet
+        for(let step = 0; step > dateRange; step++)
+        {
+            try
+            {
+                let targetDate = await start.setDate(start.getDate() + 1)
+                let photo = await FRModel.findByPhotodate(targetDate);
+                imageSet.push(photo)
+            }
+            catch (e)   {console.log(e)}
+        }
+        return imageSet
     }
     catch(err)
     {

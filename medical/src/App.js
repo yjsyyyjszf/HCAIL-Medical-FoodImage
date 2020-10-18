@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {Button, TextField, GridList, GridListTile, GridListTileBar, ListSubheader, ListItem, ListItemText} from '@material-ui/core'
 import {makeStyles} from "@material-ui/core/styles";
 import DatePicker from "react-datepicker";
-import moment from "moment";
+//import moment from "moment";
 import "./App.css"
 import "react-datepicker/dist/react-datepicker.css";
 import axios from 'axios';
@@ -74,7 +74,7 @@ function App() {
 
     const viewDate=()=>
     {
-        client.post('/date', {startdate: moment(startdate).format('YYYYMMDD'), enddate: moment(enddate).format('YYYYMMDD')})
+        client.post('/date', {startdate: startdate, enddate: enddate})
             .then(function(response)
             {
                 settile(response.data)
