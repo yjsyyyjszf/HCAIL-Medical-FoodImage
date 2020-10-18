@@ -166,7 +166,9 @@ app.post("/photosave", (req, res) =>
 
 let findImageByDate = async (start, end) =>
 {
-    const dateRange = await moment.duration(end.diff(start)).asDays();
+    // Todo : Fix diff (error  diff is undefined), Add try catch
+    const dateRange = await end.diff(start, 'days');
+    console.log(dateRange)
     let imageSet = []
     if(dateRange < 0)
     {
