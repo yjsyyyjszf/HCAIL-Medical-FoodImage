@@ -10,6 +10,7 @@ const mongoose = require("mongoose");
 const moment = require("moment")
 
 const FRModel = require("./model");
+const PatientModel = require("./patientModel");
 
 
 app.use(express.json({
@@ -56,6 +57,29 @@ const storage = multer.diskStorage
 app.use(logger('dev'))
 app.use(cors());
 
+let testUser = new PatientModel({
+    "userId" : "testId",
+    "userPassword" : "testPass",
+    "userName" : "testName"
+})
+
+let createTestUser = async () =>
+{
+    let user = await PatientModel.findByUserId("testId")
+    if(!user)
+    {
+        testUser.save(function (err)
+        {
+            if(err)
+            {
+                console.log("Error");
+                return;
+            }
+            console.log("Success");
+        })
+    }
+}
+
 
 let addPhotoToDB=(data, callback)=>
 {
@@ -85,6 +109,22 @@ let addPhotoToDB=(data, callback)=>
         })
     })
 }
+
+// Todo : connect DB
+/*
+app.get("/get", (req,res)=>
+{
+    try
+    {
+        res.send(imageList)
+    }
+    catch(err)
+    {
+        console.log(err)
+        res.send(500)
+    }
+})
+*/
 
 // Find picture using date in DB
 app.post("/date", (req, res)=>
@@ -155,6 +195,33 @@ app.post("/photosave", (req, res) =>
     {
         addPhotoToDB(req.body, ()=>console.log("Can't add photo to DB"))
         res.send(200)
+    }
+    catch(err)
+    {
+        console.log(err)
+        res.send(500);
+    }
+})
+
+app.post("/loginpatient", async (req, res)=>
+{
+    await createTestUser();
+    console.log(req.body.id)
+    try
+    {
+        const user = await PatientModel.findByUserId(req.body.id);
+        if(!user)
+        {
+            res.send(400);
+            return;
+        }
+
+        if(user.checkUser(req.body.password))
+        {
+            res.send(user.serialize());
+            return;
+        }
+        res.send(400);
     }
     catch(err)
     {
@@ -245,20 +312,6 @@ let changePhotoToUrl=(photoStr)=>
 }
  */
 
-/*
-app.get("/get", (req,res)=>
-{
-    try
-    {
-        res.send(imageList)
-    }
-    catch(err)
-    {
-        console.log(err)
-        res.send(500)
-    }
-})
-*/
 
 // 날짜 기준으로 사진 검색 후 리스트 만듬
 /*
